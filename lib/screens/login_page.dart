@@ -8,44 +8,55 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-    @override
-    Widget build(BuildContext context) {
+  final _formKey = GlobalKey<FormState>();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+
+  bool isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-        title: Text('Login'),
-        centerTitle: true,
-        ),
-        body: Padding(
+      appBar: AppBar(title: Text('Login'), centerTitle: true),
+      body: SingleChildScrollView( 
         padding: const EdgeInsets.all(16.0),
-        child: Column(
+        child: Form(
+          key: _formKey,
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-            TextField(
+              SizedBox(height: 80),
+              TextFormField(
+                controller: emailController,
                 decoration: InputDecoration(
-                labelText: 'Email',
-                border: OutlineInputBorder(),
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.emailAddress,
-            ),
-            SizedBox(height: 16),
-            TextField(
+                
+              ),
+              SizedBox(height: 16),
+              TextFormField(
+                controller: passwordController,
                 decoration: InputDecoration(
-                labelText: 'Password',
-                border: OutlineInputBorder(),
+                  labelText: 'Password',
+                  border: OutlineInputBorder(),
                 ),
                 obscureText: true,
-            ),
-            SizedBox(height: 24),
-            ElevatedButton(
-                onPressed: () {
-                // Add basic login validation logic here
-                // Example: navigate to product listing if inputs are valid
-                },
-                child: Text('Login'),
-            ),
+                
+              ),
+              SizedBox(height: 24),
+              ElevatedButton(
+                      onPressed: () {
+                       
+                      },
+                      child: Text('Login'),
+                    ),
+              SizedBox(height: 20),
             ],
+          ),
         ),
-        ),
+      ),
     );
-    }
-} 
+  }
+}
