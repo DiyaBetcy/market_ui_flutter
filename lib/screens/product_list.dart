@@ -1,15 +1,51 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
-class ProductListPage extends StatelessWidget {
+class ProductListPage extends StatefulWidget {
   const ProductListPage({super.key});
+  @override
+  State<ProductListPage> createState()=> _ProductListPageState();
+}
 
+class _ProductListPageState extends State<ProductListPage> {
+  List<dynamic> products = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchProducts();
+  }
+
+  Future<void> fetchProducts() async {
+  final url = Uri.parse('https://dummyjson.com/products');
+  final response = await http.get(url);
+  print(response.statusCode);
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    setState(() {
+      products = data['products']; 
+      isLoading = false;
+    });
+  } else {
+    setState(() {
+      isLoading = false;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Failed to load products')),
+    );
+  }
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Product List')),
-      body: GridView.builder(
+      body: isLoading
+      ? Center(child: CircularProgressIndicator())
+        :GridView.builder(
         padding: const EdgeInsets.all(8),
-        itemCount: 5,
+        itemCount: products.length,
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
           crossAxisSpacing: 8,
@@ -17,7 +53,7 @@ class ProductListPage extends StatelessWidget {
           childAspectRatio: 0.7,
         ),
         itemBuilder: (context, index) {
-          final product = {}; 
+          final product = products[index]; 
           return Card(
             elevation: 3,
             shape: RoundedRectangleBorder(
@@ -46,17 +82,17 @@ class ProductListPage extends StatelessWidget {
                   ),
                   SizedBox(height: 12),
                   Text(
-                    product['title'] ?? 'Product Name',
+                    product['title'],
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 6),
                   Text(
-                    '₹ ${product['price'] ?? '0'}',
+                    '₹ ${product['price']}',
                     style: TextStyle(fontSize: 14, color: Colors.green[700]),
                   ),
                   SizedBox(height: 6),
                   Text(
-                    product['description'] ?? 'Product description...',
+                    product['description'],
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontSize: 13, color: Colors.grey[600]),
