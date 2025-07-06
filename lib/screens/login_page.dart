@@ -11,6 +11,8 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final String adminEmail = 'admin@gmail.com';
+  final String adminPassword = 'Admin@123';
 
   bool isLoading = false;
 
@@ -18,7 +20,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Login'), centerTitle: true),
-      body: SingleChildScrollView( 
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
@@ -37,8 +39,9 @@ class _LoginPageState extends State<LoginPage> {
                   if (value == null || value.isEmpty) {
                     return 'Email is required';
                   }
-                  if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                      .hasMatch(value)) {
+                  if (!RegExp(
+                    r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                  ).hasMatch(value)) {
                     return 'Enter a valid email';
                   }
                   return null;
@@ -72,12 +75,35 @@ class _LoginPageState extends State<LoginPage> {
                 },
               ),
               SizedBox(height: 24),
-              ElevatedButton(
-                      onPressed: () {
-                       
+              isLoading
+                  ? CircularProgressIndicator()
+                  : ElevatedButton(
+                      onPressed: () async {
+                        if (_formKey.currentState!.validate()) {
+                          setState(() => isLoading = true);
+                          await Future.delayed(Duration(seconds: 2));
+
+                          if (emailController.text.trim() == adminEmail &&
+                              passwordController.text.trim() == adminPassword) {
+                            setState(() => isLoading = false);
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Login successful')),
+                            );
+                          } else {
+                            setState(() => isLoading = false);
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Invalid email or password'),
+                              ),
+                            );
+                          }
+                        }
                       },
                       child: Text('Login'),
                     ),
+
               SizedBox(height: 20),
             ],
           ),
