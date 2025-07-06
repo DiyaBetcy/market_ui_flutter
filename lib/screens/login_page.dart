@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/main.dart';
+import 'package:flutter_application_1/screens/product_list.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -90,6 +92,7 @@ class _LoginPageState extends State<LoginPage> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text('Login successful')),
                             );
+                            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_)=>ProductListPage()));
                           } else {
                             setState(() => isLoading = false);
 
