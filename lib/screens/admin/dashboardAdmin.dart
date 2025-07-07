@@ -20,7 +20,9 @@ class _AdminProductPageState extends State<AdminProductPage> {
   }
 
   Future<void> fetchProducts() async {
-    final response = await http.get(Uri.parse('https://dummyjson.com/products'));
+    final response = await http.get(
+      Uri.parse('https://dummyjson.com/products'),
+    );
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       setState(() {
@@ -29,33 +31,33 @@ class _AdminProductPageState extends State<AdminProductPage> {
       });
     } else {
       setState(() => isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load products')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to load products')));
     }
   }
 
   Future<void> addProduct() async {
     final _formKey = GlobalKey<FormState>();
-    String title = "", description='', category = '', thumbnail='';
+    String title = "", description = '', category = '', thumbnail = '';
     int price = 0;
 
     await showDialog(
-      context: context, 
-      builder: (context)=> AlertDialog(
+      context: context,
+      builder: (context) => AlertDialog(
         title: Text('Add New product'),
         content: SingleChildScrollView(
-          child: Form( 
+          child: Form(
             key: _formKey,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextFormField(
                   decoration: InputDecoration(labelText: 'Title'),
-                  onChanged: (val) => title =  val,
-                  validator: (val) => val!.isEmpty? 'Enter title': null,
+                  onChanged: (val) => title = val,
+                  validator: (val) => val!.isEmpty ? 'Enter title' : null,
                 ),
-                 TextFormField(
+                TextFormField(
                   decoration: InputDecoration(labelText: 'Price'),
                   keyboardType: TextInputType.number,
                   onChanged: (val) => price = int.tryParse(val) ?? 0,
@@ -79,10 +81,13 @@ class _AdminProductPageState extends State<AdminProductPage> {
           ),
         ),
         actions: [
-          TextButton(onPressed: ()=> Navigator.pop(context), child: Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
           ElevatedButton(
-            onPressed: () async{
-              if(_formKey.currentState!.validate()){
+            onPressed: () async {
+              if (_formKey.currentState!.validate()) {
                 final response = await http.post(
                   Uri.parse('https://dummyjson.com/products/add'),
                   headers: {'Content-Type': 'application/json'},
@@ -94,78 +99,116 @@ class _AdminProductPageState extends State<AdminProductPage> {
                     'thumbnail': thumbnail,
                   }),
                 );
-                if (response.statusCode == 200 || response.statusCode == 201){
+                if (response.statusCode == 200 || response.statusCode == 201) {
                   final data = jsonDecode(response.body);
-                  setState(() => products.insert(0,data));
+                  setState(() => products.insert(0, data));
                   Navigator.pop(context);
                 } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Failed to add product')),
-                );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to add product')),
+                  );
+                }
               }
-              }
-            }, 
-            child: Text('Add')
-          )
+            },
+            child: Text('Add'),
+          ),
         ],
-      )
+      ),
     );
   }
 
   Future<void> updateProduct(int id) async {
-    final product = products.firstWhere((p)=>p['id'] == id);
-     final _formKey = GlobalKey<FormState>();
-  String title = product['title'];
+    final product = products.firstWhere((p) => p['id'] == id);
+    final _formKey = GlobalKey<FormState>();
+    String title = product['title'] ?? '';
+    String description = product['description'] ?? '';
+    String category = product['category'] ?? '';
+    String thumbnail = product['thumbnail'] ?? '';
+    double price = product['price'] ?? 0;
 
-  await showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: Text('Edit Product'),
-      content: Form(
-        key: _formKey,
-        child: TextFormField(
-          initialValue: title,
-          decoration: InputDecoration(labelText: 'Title'),
-          validator: (val) => val!.isEmpty ? 'Enter title' : null,
-          onChanged: (val) => title = val,
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Edit Product'),
+        content: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                initialValue: title,
+                decoration: InputDecoration(labelText: 'Title'),
+                validator: (val) => val!.isEmpty ? 'Enter title' : null,
+                onChanged: (val) => title = val,
+              ),
+              TextFormField(
+                initialValue: price.toString(),
+                decoration: InputDecoration(labelText: 'Price'),
+                keyboardType: TextInputType.number,
+                validator: (val) => val!.isEmpty ? 'Enter price' : null,
+                onChanged: (val) => price = double.tryParse(val) ?? 0,
+              ),
+              TextFormField(
+                initialValue: description,
+                decoration: InputDecoration(labelText: 'Description'),
+                onChanged: (val) => description = val,
+              ),
+              TextFormField(
+                initialValue: category,
+                decoration: InputDecoration(labelText: 'Category'),
+                onChanged: (val) => category = val,
+              ),
+              TextFormField(
+                initialValue: thumbnail,
+                decoration: InputDecoration(labelText: 'Thumbnail URL'),
+                onChanged: (val) => thumbnail = val,
+              ),
+            ],
+          ),
         ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text('Cancel'),
-        ),
-        ElevatedButton(
-          child: Text('Update'),
-          onPressed: () async {
-            if (_formKey.currentState!.validate()) {
-              final response = await http.put(
-                Uri.parse('https://dummyjson.com/products/$id'),
-                headers: {'Content-Type': 'application/json'},
-                body: jsonEncode({'title': title}),
-              );
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            child: Text('Update'),
+            onPressed: () async {
+              if (_formKey.currentState!.validate()) {
+                final response = await http.put(
+                  Uri.parse('https://dummyjson.com/products/$id'),
+                  headers: {'Content-Type': 'application/json'},
+                  body: jsonEncode({
+                    'title': title,
+                    'price': price,
+                    'description': description,
+                    'category': category,
+                    'thumbnail': thumbnail,
+                  }),
+                );
 
-              if (response.statusCode == 200) {
-                final updated = jsonDecode(response.body);
-                setState(() {
-                  final index = products.indexWhere((p) => p['id'] == id);
-                  if (index != -1) {
-                    products[index] = updated;
-                  }
-                });
-                Navigator.pop(context);
+                if (response.statusCode == 200) {
+                  final updated = jsonDecode(response.body);
+                  setState(() {
+                    final index = products.indexWhere((p) => p['id'] == id);
+                    if (index != -1) {
+                      products[index] = updated;
+                    }
+                  });
+                  Navigator.pop(context);
+                }
               }
-            }
-          },
-        )
-      ],
-    ),
-  );
-}
-
+            },
+          ),
+        ],
+      ),
+    );
+  }
 
   Future<void> deleteProduct(int id) async {
-    final response = await http.delete(Uri.parse('https://dummyjson.com/products/$id'));
+    final response = await http.delete(
+      Uri.parse('https://dummyjson.com/products/$id'),
+    );
     if (response.statusCode == 200) {
       setState(() => products.removeWhere((p) => p['id'] == id));
     }
@@ -176,12 +219,7 @@ class _AdminProductPageState extends State<AdminProductPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Admin - Manage Products'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.add),
-            onPressed: addProduct,
-          ),
-        ],
+        actions: [IconButton(icon: Icon(Icons.add), onPressed: addProduct)],
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
@@ -208,7 +246,9 @@ class _AdminProductPageState extends State<AdminProductPage> {
                           context: context,
                           builder: (ctx) => AlertDialog(
                             title: Text('Confirm Delete'),
-                            content: Text('Are you sure you want to delete this product?'),
+                            content: Text(
+                              'Are you sure you want to delete this product?',
+                            ),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(ctx),
