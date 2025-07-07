@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/screens/admin/dashboardAdmin.dart';
 import 'package:flutter_application_1/screens/login_page.dart';
-import 'package:flutter_application_1/screens/product_details.dart';
-import 'package:flutter_application_1/screens/product_list.dart';
 
 void main() {
   runApp(const MyApp());
@@ -35,7 +32,7 @@ class MyApp extends StatelessWidget {
         // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: ProductListPage(),
+      home: LoginPage(),
     );
   }
 }
