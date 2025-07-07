@@ -17,8 +17,9 @@ class _ProductListPageState extends State<ProductListPage> {
   TextEditingController searchController = TextEditingController();
   String selectedCategory = 'All';
   double minPrice = 0;
-  double maxPrice = 200000;
-
+  double maxPrice = 0;
+  List<Map<String, double>> priceRanges = [];
+  int? selectedRangeIndex;
   List<String> categories = [];
 
   @override
@@ -35,15 +36,23 @@ class _ProductListPageState extends State<ProductListPage> {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       final List<dynamic> fetchedProducts = data['products'];
+      final prices = fetchedProducts
+          .map((p) => (p['price'] as num).toDouble())
+          .toList();
+      final double min = prices.reduce((a, b) => a < b ? a : b);
+      final double max = prices.reduce((a, b) => a > b ? a : b);
       final Set<String> categorySet = fetchedProducts
           .map<String>((p) => p['category'])
           .toSet();
 
       setState(() {
-        allProducts = data['products'];
+        allProducts = fetchedProducts;
         products = allProducts;
         categories = ['All', ...categorySet];
         isLoading = false;
+        minPrice = min;
+        maxPrice = max;
+        generatePriceRanges();
       });
     } else {
       setState(() {
@@ -53,6 +62,18 @@ class _ProductListPageState extends State<ProductListPage> {
         context,
       ).showSnackBar(SnackBar(content: Text('Failed to load products')));
     }
+  }
+
+  void generatePriceRanges() {
+    priceRanges.clear();
+    double rangeStart = (minPrice ~/ 500) * 500;
+    double rangeEnd = ((maxPrice / 500).ceil()) * 500;
+
+    for (double start = rangeStart; start < rangeEnd; start += 500) {
+      priceRanges.add({'min': start, 'max': start + 499});
+    }
+    // Final range for "max and above"
+    priceRanges.add({'min': rangeEnd, 'max': double.infinity});
   }
 
   @override
@@ -243,82 +264,113 @@ class _ProductListPageState extends State<ProductListPage> {
   }
 
   Widget buildFilterSheet() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Filter',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 16),
+    String tempCategory = selectedCategory;
+    int? tempRangeIndex = selectedRangeIndex;
 
-          DropdownButtonFormField<String>(
-            value: selectedCategory,
-            items: categories.map((cat) {
-              return DropdownMenuItem(value: cat, child: Text(cat));
-            }).toList(),
-            onChanged: (value) => setState(() => selectedCategory = value!),
-            decoration: InputDecoration(
-              labelText: 'Category',
-              border: OutlineInputBorder(),
+    return StatefulBuilder(
+      builder: (context, setSheetState) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Filter',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: tempCategory,
+                  items: categories.map((cat) {
+                    return DropdownMenuItem(value: cat, child: Text(cat));
+                  }).toList(),
+                  onChanged: (value) {
+                    setSheetState(() => tempCategory = value!);
+                  },
+                  decoration: InputDecoration(
+                    labelText: 'Category',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text('Price Range'),
+                Column(
+                  children: List.generate(priceRanges.length, (index) {
+                    final range = priceRanges[index];
+                    final isLast = range['max'] == double.infinity;
+                    final label = isLast
+                        ? '₹${range['min']!.round()} and above'
+                        : '₹${range['min']!.round()} - ₹${range['max']!.round()}';
+
+                    return CheckboxListTile(
+                      title: Text(label),
+                      value: tempRangeIndex == index,
+                      onChanged: (val) {
+                        setSheetState(() {
+                          tempRangeIndex = val == true ? index : null;
+                        });
+                      },
+                    );
+                  }),
+                ),
+                SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          selectedCategory = 'All';
+                          selectedRangeIndex = null;
+                          products = allProducts;
+                        });
+                        Navigator.pop(context);
+                      },
+                      child: Text('Clear Filters'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        // ✅ Update main state here
+                        setState(() {
+                          selectedCategory = tempCategory;
+                          selectedRangeIndex = tempRangeIndex;
+
+                          double selectedMin = 0;
+                          double selectedMax = double.infinity;
+
+                          if (selectedRangeIndex != null &&
+                              selectedRangeIndex! >= 0 &&
+                              selectedRangeIndex! < priceRanges.length) {
+                            selectedMin =
+                                priceRanges[selectedRangeIndex!]['min']!;
+                            selectedMax =
+                                priceRanges[selectedRangeIndex!]['max']!;
+                          }
+
+                          products = allProducts.where((product) {
+                            final price = (product['price'] as num).toDouble();
+                            final categoryMatch =
+                                selectedCategory == 'All' ||
+                                product['category'] == selectedCategory;
+                            final priceMatch =
+                                price >= selectedMin && price <= selectedMax;
+                            return categoryMatch && priceMatch;
+                          }).toList();
+                        });
+
+                        Navigator.pop(context);
+                      },
+                      child: Text('Apply'),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          SizedBox(height: 16),
-
-          Text('Price Range'),
-          RangeSlider(
-            values: RangeValues(minPrice, maxPrice),
-            min: 0,
-            max: 200000,
-            divisions: 20,
-            labels: RangeLabels('₹${minPrice.round()}', '₹${maxPrice.round()}'),
-            onChanged: (values) {
-              setState(() {
-                minPrice = values.start;
-                maxPrice = values.end;
-              });
-            },
-          ),
-          SizedBox(height: 16),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              TextButton(
-                child: Text('Clear'),
-                onPressed: () {
-                  setState(() {
-                    selectedCategory = 'All';
-                    minPrice = 0;
-                    maxPrice = 200000;
-                    products = allProducts;
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              ElevatedButton(
-                child: Text('Apply'),
-                onPressed: () {
-                  final filtered = allProducts.where((product) {
-                    final price = product['price'].toDouble();
-                    final categoryMatch =
-                        selectedCategory == 'All' ||
-                        product['category'] == selectedCategory;
-                    final priceMatch = price >= minPrice && price <= maxPrice;
-                    return categoryMatch && priceMatch;
-                  }).toList();
-
-                  setState(() => products = filtered);
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
