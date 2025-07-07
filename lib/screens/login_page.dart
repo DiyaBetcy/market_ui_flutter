@@ -15,6 +15,7 @@ class _LoginPageState extends State<LoginPage> {
   final passwordController = TextEditingController();
   final String adminEmail = 'admin@gmail.com';
   final String adminPassword = 'Admin@123';
+  bool _obscurePass = true;
 
   bool isLoading = false;
 
@@ -55,8 +56,17 @@ class _LoginPageState extends State<LoginPage> {
                 decoration: InputDecoration(
                   labelText: 'Password',
                   border: OutlineInputBorder(),
+                  suffixIcon: IconButton(icon: Icon(
+                    _obscurePass ? Icons.visibility_off : Icons.visibility,
+                  ),
+                  onPressed: (){
+                    setState(() {
+                      _obscurePass = !_obscurePass;
+                    });
+                  },
+                  ),
                 ),
-                obscureText: true,
+                obscureText: _obscurePass,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Password is required';
