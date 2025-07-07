@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/screens/login_page.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -208,20 +209,20 @@ class _AdminProductPageState extends State<AdminProductPage> {
   }
 
   Future<void> deleteProduct(int id) async {
-  try{
-    final response = await http.delete(
-      Uri.parse('https://dummyjson.com/products/$id'),
-    );
-    setState(() => products.removeWhere((p) => p['id'] == id)); 
-    if (response.statusCode == 200) {
-      print("Deleted from server (simulated).");
-    } else {
-      print("Deleted locally, but API did not return 200.");
+    try {
+      final response = await http.delete(
+        Uri.parse('https://dummyjson.com/products/$id'),
+      );
+      setState(() => products.removeWhere((p) => p['id'] == id));
+      if (response.statusCode == 200) {
+        print("Deleted from server (simulated).");
+      } else {
+        print("Deleted locally, but API did not return 200.");
+      }
+    } catch (e) {
+      print("Error while deleting: $e");
+      setState(() => products.removeWhere((p) => p['id'] == id));
     }
-  } catch (e) {
-    print("Error while deleting: $e");
-    setState(() => products.removeWhere((p) => p['id'] == id));
-  }
   }
 
   @override
@@ -229,7 +230,38 @@ class _AdminProductPageState extends State<AdminProductPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Admin - Manage Products'),
-        actions: [IconButton(icon: Icon(Icons.add), onPressed: addProduct)],
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            tooltip: 'Logout',
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: Text('Confirm Logout'),
+                  content: Text('Are you sure you want to logout?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(ctx); // close dialog
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (_) => LoginPage()),
+                          (route) => false,
+                        );
+                      },
+                      child: Text('Logout'),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
@@ -256,6 +288,20 @@ class _AdminProductPageState extends State<AdminProductPage> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12.0,
+                    vertical: 4,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      IconButton(onPressed: addProduct, icon: Icon(Icons.add),
+                      tooltip: 'Add Product'
+                     ),
+                    ],
                   ),
                 ),
                 Expanded(
