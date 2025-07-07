@@ -129,7 +129,24 @@ class ProductDetailsPage extends StatelessWidget {
             buildSpecRow('Shipping', shipping),
             buildSpecRow('Minimum Order', '$minOrder'),
             buildSpecRow('Barcode', barcode),
-          ]
+
+            if (qr != null) ...[
+              SizedBox(height: 12),
+              Text('QR Code'),
+              SizedBox(height: 8),
+              Image.network(qr, height: 80),
+            ],
+
+            const SizedBox(height: 16),
+
+            Text(
+              'Description',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: 8),
+            Text(description),
+            SizedBox(height: 20),
+            ]
         ),
       ),
     );
