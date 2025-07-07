@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/screens/product_details.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -113,59 +114,64 @@ class _ProductListPageState extends State<ProductListPage> {
                     ),
                     itemBuilder: (context, index) {
                       final product = products[index];
-                      return Card(
-                        elevation: 3,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.network(
-                                  product['thumbnail'],
-                                  height: 100,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      Container(
-                                        height: 100,
-                                        color: Colors.grey[300],
-                                        alignment: Alignment.center,
-                                        child: Text('No Image'),
-                                      ),
+                      return InkWell(
+                        onTap: (){
+                        Navigator.push(context, MaterialPageRoute(builder: (context)=>ProductDetailsPage(product: product)));
+                        },
+                        child: Card(
+                          elevation: 3,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(
+                                    product['thumbnail'],
+                                    height: 100,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        Container(
+                                          height: 100,
+                                          color: Colors.grey[300],
+                                          alignment: Alignment.center,
+                                          child: Text('No Image'),
+                                        ),
+                                  ),
                                 ),
-                              ),
-                              SizedBox(height: 12),
-                              Text(
-                                product['title'],
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                                SizedBox(height: 12),
+                                Text(
+                                  product['title'],
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              ),
-                              SizedBox(height: 6),
-                              Text(
-                                '₹ ${product['price']}',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.green[700],
+                                SizedBox(height: 6),
+                                Text(
+                                  '₹ ${product['price']}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.green[700],
+                                  ),
                                 ),
-                              ),
-                              SizedBox(height: 6),
-                              Text(
-                                product['description'],
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey[600],
+                                SizedBox(height: 6),
+                                Text(
+                                  product['description'],
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey[600],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       );
