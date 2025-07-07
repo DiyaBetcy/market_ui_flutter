@@ -11,8 +11,9 @@ class AdminProductPage extends StatefulWidget {
 
 class _AdminProductPageState extends State<AdminProductPage> {
   List<dynamic> products = [];
+  List<dynamic> allproducts = [];
   bool isLoading = true;
-
+  TextEditingController searchController = TextEditingController();
   @override
   void initState() {
     super.initState();
@@ -26,7 +27,8 @@ class _AdminProductPageState extends State<AdminProductPage> {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       setState(() {
-        products = data['products'];
+        allproducts = data['products'];
+        products = allproducts;
         isLoading = false;
       });
     } else {
@@ -206,12 +208,20 @@ class _AdminProductPageState extends State<AdminProductPage> {
   }
 
   Future<void> deleteProduct(int id) async {
+  try{
     final response = await http.delete(
       Uri.parse('https://dummyjson.com/products/$id'),
     );
+    setState(() => products.removeWhere((p) => p['id'] == id)); 
     if (response.statusCode == 200) {
-      setState(() => products.removeWhere((p) => p['id'] == id));
+      print("Deleted from server (simulated).");
+    } else {
+      print("Deleted locally, but API did not return 200.");
     }
+  } catch (e) {
+    print("Error while deleting: $e");
+    setState(() => products.removeWhere((p) => p['id'] == id));
+  }
   }
 
   @override
@@ -223,52 +233,83 @@ class _AdminProductPageState extends State<AdminProductPage> {
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: products.length,
-              itemBuilder: (context, index) {
-                final product = products[index];
-                return ListTile(
-                  leading: CircleAvatar(
-                    backgroundImage: NetworkImage(product['thumbnail'] ?? ''),
-                  ),
-                  title: Text(product['title']),
-                  subtitle: Text('₹ ${product['price']}'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.edit, color: Colors.blue),
-                        onPressed: () => updateProduct(product['id']),
+          : Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: TextField(
+                    controller: searchController,
+                    onChanged: (value) {
+                      final filtered = allproducts.where((product) {
+                        final title = product['title'].toString().toLowerCase();
+                        return title.contains(value.toLowerCase());
+                      }).toList();
+
+                      setState(() {
+                        products = filtered;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'Search by product name',
+                      prefixIcon: Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      IconButton(
-                        icon: Icon(Icons.delete, color: Colors.red),
-                        onPressed: () => showDialog(
-                          context: context,
-                          builder: (ctx) => AlertDialog(
-                            title: Text('Confirm Delete'),
-                            content: Text(
-                              'Are you sure you want to delete this product?',
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(ctx),
-                                child: Text('Cancel'),
-                              ),
-                              ElevatedButton(
-                                onPressed: () {
-                                  Navigator.pop(ctx);
-                                  deleteProduct(product['id']);
-                                },
-                                child: Text('Delete'),
-                              ),
-                            ],
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: products.length,
+                    itemBuilder: (context, index) {
+                      final product = products[index];
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundImage: NetworkImage(
+                            product['thumbnail'] ?? '',
                           ),
                         ),
-                      ),
-                    ],
+                        title: Text(product['title']),
+                        subtitle: Text('₹ ${product['price']}'),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.edit, color: Colors.blue),
+                              onPressed: () => updateProduct(product['id']),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => showDialog(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  title: Text('Confirm Delete'),
+                                  content: Text(
+                                    'Are you sure you want to delete this product?',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(ctx),
+                                      child: Text('Cancel'),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        Navigator.pop(ctx);
+                                        deleteProduct(product['id']);
+                                      },
+                                      child: Text('Delete'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
+                ),
+              ],
             ),
     );
   }
