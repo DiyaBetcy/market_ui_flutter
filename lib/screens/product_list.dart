@@ -225,11 +225,18 @@ class _ProductListPageState extends State<ProductListPage> {
                                   ),
                                 ),
                                 SizedBox(height: 12),
-                                Text(
-                                  product['title'],
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        product['title'],
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                                 SizedBox(height: 6),
@@ -243,7 +250,7 @@ class _ProductListPageState extends State<ProductListPage> {
                                 SizedBox(height: 6),
                                 Text(
                                   product['description'],
-                                  maxLines: 2,
+                                  maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     fontSize: 13,
