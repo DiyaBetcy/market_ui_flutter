@@ -113,8 +113,56 @@ class _AdminProductPageState extends State<AdminProductPage> {
   }
 
   Future<void> updateProduct(int id) async {
-    
-  }
+    final product = products.firstWhere((p)=>p['id'] == id);
+     final _formKey = GlobalKey<FormState>();
+  String title = product['title'];
+
+  await showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text('Edit Product'),
+      content: Form(
+        key: _formKey,
+        child: TextFormField(
+          initialValue: title,
+          decoration: InputDecoration(labelText: 'Title'),
+          validator: (val) => val!.isEmpty ? 'Enter title' : null,
+          onChanged: (val) => title = val,
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('Cancel'),
+        ),
+        ElevatedButton(
+          child: Text('Update'),
+          onPressed: () async {
+            if (_formKey.currentState!.validate()) {
+              final response = await http.put(
+                Uri.parse('https://dummyjson.com/products/$id'),
+                headers: {'Content-Type': 'application/json'},
+                body: jsonEncode({'title': title}),
+              );
+
+              if (response.statusCode == 200) {
+                final updated = jsonDecode(response.body);
+                setState(() {
+                  final index = products.indexWhere((p) => p['id'] == id);
+                  if (index != -1) {
+                    products[index] = updated;
+                  }
+                });
+                Navigator.pop(context);
+              }
+            }
+          },
+        )
+      ],
+    ),
+  );
+}
+
 
   Future<void> deleteProduct(int id) async {
     final response = await http.delete(Uri.parse('https://dummyjson.com/products/$id'));
