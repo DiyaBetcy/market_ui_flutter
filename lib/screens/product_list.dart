@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/screens/login_page.dart';
 import 'package:flutter_application_1/screens/product_details.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -57,21 +58,40 @@ class _ProductListPageState extends State<ProductListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Product List'),
-      actions: [
-        IconButton(
-          icon: Icon(Icons.filter_list),
-          onPressed: () {
-            showModalBottomSheet(
-              context: context,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-              ),
-              builder: (context) => buildFilterSheet(),
-            );
-          },
-        ),
-      ],
+      appBar: AppBar(
+        title: Text('Product List'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            tooltip: 'Logout',
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: Text('Confirm Logout'),
+                  content: Text('Are you sure you want to logout?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(ctx); // close dialog
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (_) => LoginPage()),
+                          (route) => false,
+                        );
+                      },
+                      child: Text('Logout'),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
@@ -100,6 +120,38 @@ class _ProductListPageState extends State<ProductListPage> {
                     ),
                   ),
                 ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12.0,
+                    vertical: 4,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          showModalBottomSheet(
+                            context: context,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(16),
+                              ),
+                            ),
+                            builder: (context) => buildFilterSheet(),
+                          );
+                        },
+                        icon: Icon(Icons.filter_list),
+                        label: Text('Filter'),
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 Expanded(
                   child: GridView.builder(
                     padding: const EdgeInsets.all(8),
@@ -115,8 +167,14 @@ class _ProductListPageState extends State<ProductListPage> {
                     itemBuilder: (context, index) {
                       final product = products[index];
                       return InkWell(
-                        onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context)=>ProductDetailsPage(product: product)));
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ProductDetailsPage(product: product),
+                            ),
+                          );
                         },
                         child: Card(
                           elevation: 3,
@@ -135,13 +193,14 @@ class _ProductListPageState extends State<ProductListPage> {
                                     height: 100,
                                     width: double.infinity,
                                     fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) =>
-                                        Container(
-                                          height: 100,
-                                          color: Colors.grey[300],
-                                          alignment: Alignment.center,
-                                          child: Text('No Image'),
-                                        ),
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            Container(
+                                              height: 100,
+                                              color: Colors.grey[300],
+                                              alignment: Alignment.center,
+                                              child: Text('No Image'),
+                                            ),
                                   ),
                                 ),
                                 SizedBox(height: 12),
@@ -181,78 +240,85 @@ class _ProductListPageState extends State<ProductListPage> {
               ],
             ),
     );
-    
   }
+
   Widget buildFilterSheet() {
-  return Padding(
-    padding: const EdgeInsets.all(16.0),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Filter', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        SizedBox(height: 16),
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Filter',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 16),
 
-        DropdownButtonFormField<String>(
-          value: selectedCategory,
-          items: categories.map((cat) {
-            return DropdownMenuItem(value: cat, child: Text(cat));
-          }).toList(),
-          onChanged: (value) => setState(() => selectedCategory = value!),
-          decoration: InputDecoration(labelText: 'Category', border: OutlineInputBorder()),
-        ),
-        SizedBox(height: 16),
-
-        Text('Price Range'),
-        RangeSlider(
-          values: RangeValues(minPrice, maxPrice),
-          min: 0,
-          max: 200000,
-          divisions: 20,
-          labels: RangeLabels('₹${minPrice.round()}', '₹${maxPrice.round()}'),
-          onChanged: (values) {
-            setState(() {
-              minPrice = values.start;
-              maxPrice = values.end;
-            });
-          },
-        ),
-        SizedBox(height: 16),
-
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            TextButton(
-              child: Text('Clear'),
-              onPressed: () {
-                setState(() {
-                  selectedCategory = 'All';
-                  minPrice = 0;
-                  maxPrice = 200000;
-                  products = allProducts;
-                });
-                Navigator.pop(context);
-              },
+          DropdownButtonFormField<String>(
+            value: selectedCategory,
+            items: categories.map((cat) {
+              return DropdownMenuItem(value: cat, child: Text(cat));
+            }).toList(),
+            onChanged: (value) => setState(() => selectedCategory = value!),
+            decoration: InputDecoration(
+              labelText: 'Category',
+              border: OutlineInputBorder(),
             ),
-            ElevatedButton(
-              child: Text('Apply'),
-              onPressed: () {
-                final filtered = allProducts.where((product) {
-                  final price = product['price'].toDouble();
-                  final categoryMatch = selectedCategory == 'All' || product['category'] == selectedCategory;
-                  final priceMatch = price >= minPrice && price <= maxPrice;
-                  return categoryMatch && priceMatch;
-                }).toList();
+          ),
+          SizedBox(height: 16),
 
-                setState(() => products = filtered);
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        )
-      ],
-    ),
-  );
-}
+          Text('Price Range'),
+          RangeSlider(
+            values: RangeValues(minPrice, maxPrice),
+            min: 0,
+            max: 200000,
+            divisions: 20,
+            labels: RangeLabels('₹${minPrice.round()}', '₹${maxPrice.round()}'),
+            onChanged: (values) {
+              setState(() {
+                minPrice = values.start;
+                maxPrice = values.end;
+              });
+            },
+          ),
+          SizedBox(height: 16),
 
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(
+                child: Text('Clear'),
+                onPressed: () {
+                  setState(() {
+                    selectedCategory = 'All';
+                    minPrice = 0;
+                    maxPrice = 200000;
+                    products = allProducts;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              ElevatedButton(
+                child: Text('Apply'),
+                onPressed: () {
+                  final filtered = allProducts.where((product) {
+                    final price = product['price'].toDouble();
+                    final categoryMatch =
+                        selectedCategory == 'All' ||
+                        product['category'] == selectedCategory;
+                    final priceMatch = price >= minPrice && price <= maxPrice;
+                    return categoryMatch && priceMatch;
+                  }).toList();
+
+                  setState(() => products = filtered);
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }
