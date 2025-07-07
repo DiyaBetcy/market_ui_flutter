@@ -15,7 +15,6 @@ class ProductDetailsPage extends StatelessWidget {
     final category = product['category'] ?? '';
     final availability = product['availabilityStatus'] ?? 'Available';
     final discount = product['discountPercentage']?.toDouble() ?? 0;
-    final rating = product['rating'] ?? 0;
     final tags = product['tags'] ?? [];
     final sku = product['sku'] ?? '';
     final weight = product['weight'] ?? '';
@@ -27,11 +26,9 @@ class ProductDetailsPage extends StatelessWidget {
     final qr = product['meta']?['qrCode'];
     final reviews = product['reviews'] ?? [];
 
-    final actualprice = (discount>0)? (price / (1 - discount / 100)) : price ;
+    final actualprice = (discount > 0) ? (price / (1 - discount / 100)) : price;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-      ),
+      appBar: AppBar(title: Text(title)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -90,7 +87,7 @@ class ProductDetailsPage extends StatelessWidget {
               spacing: 6,
               children: [
                 Chip(label: Text(category)),
-                ...tags.map((tag) => Chip(label: Text(tag))).toList()
+                ...tags.map((tag) => Chip(label: Text(tag))).toList(),
               ],
             ),
 
@@ -98,10 +95,7 @@ class ProductDetailsPage extends StatelessWidget {
 
             Row(
               children: [
-                Text(
-                  'Status: ',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
+                Text('Status: ', style: TextStyle(fontWeight: FontWeight.bold)),
                 Text(
                   availability,
                   style: TextStyle(
@@ -123,8 +117,10 @@ class ProductDetailsPage extends StatelessWidget {
             buildSpecRow('Brand', brand),
             buildSpecRow('SKU', sku),
             buildSpecRow('Weight', '$weight g'),
-            buildSpecRow('Dimensions',
-                '${dimensions['width']} x ${dimensions['height']} x ${dimensions['depth']} cm'),
+            buildSpecRow(
+              'Dimensions',
+              '${dimensions['width']} x ${dimensions['height']} x ${dimensions['depth']} cm',
+            ),
             buildSpecRow('Warranty', warranty),
             buildSpecRow('Shipping', shipping),
             buildSpecRow('Minimum Order', '$minOrder'),
@@ -146,7 +142,49 @@ class ProductDetailsPage extends StatelessWidget {
             const SizedBox(height: 8),
             Text(description),
             SizedBox(height: 20),
-            ]
+            if (reviews.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              Text(
+                'Customer Reviews',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              ...reviews.map((review) {
+                int rating = review['rating'] ?? 0;
+                String comment = review['comment'] ?? '';
+                String reviewer = review['reviewerName'] ?? 'Anonymous';
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: List.generate(
+                        5,
+                        (index) => Icon(
+                          index < rating ? Icons.star : Icons.star_border,
+                          color: Colors.amber,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '"$comment"',
+                      style: TextStyle(fontSize: 14, color: Colors.black87),
+                    ),
+                    Text(
+                      '- $reviewer',
+                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                    ),
+                    const Divider(height: 24),
+                  ],
+                );
+              }).toList(),
+            ] else ...[
+              const SizedBox(height: 24),
+              Text('No reviews yet.', style: TextStyle(color: Colors.grey)),
+            ],
+          ],
         ),
       ),
     );
