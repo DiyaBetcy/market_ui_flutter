@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/main.dart';
+import 'package:flutter_application_1/screens/admin/dashboardAdmin.dart';
 import 'package:flutter_application_1/screens/product_list.dart';
 
 class LoginPage extends StatefulWidget {
@@ -85,22 +86,25 @@ class _LoginPageState extends State<LoginPage> {
                           setState(() => isLoading = true);
                           await Future.delayed(Duration(seconds: 2));
 
-                          if (emailController.text.trim() == adminEmail &&
-                              passwordController.text.trim() == adminPassword) {
-                            setState(() => isLoading = false);
+                          final email =  emailController.text.trim();
+                          final password = passwordController.text.trim();
+
+                          setState(() => isLoading = false);
+
+                          if (email == adminEmail &&
+                              password == adminPassword) {
 
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Login successful')),
+                              SnackBar(content: Text(' Admin Login successful')),
                             );
-                            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_)=>ProductListPage()));
+                            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_)=>AdminProductPage()));
                           } else {
-                            setState(() => isLoading = false);
-
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Invalid email or password'),
+                                content: Text('User login successful'),
                               ),
                             );
+                            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_)=>ProductListPage()));
                           }
                         }
                       },
