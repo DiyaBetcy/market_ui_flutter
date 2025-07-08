@@ -7,7 +7,7 @@ A simple and responsive Flutter application that demonstrates a complete product
 -  Product details view
 -  Product management with CRUD operations
 
-This project was developed as part of an interview task for the **Flutter Developer** position at **Flxiidesx Workspaces Pvt Ltd**.
+This project was developed as part of an interview task for the **Flutter Intern** position at **Flxiidesx Workspaces Pvt Ltd**.
 
 ---
 
